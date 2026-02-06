@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tourism Intelligence Platform</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <main class="tip-card">
+      <header class="tip-card__header">
+        <h1 class="tip-title">Tourism Intelligence Platform</h1>
+        <p class="tip-subtitle">
+          Smart travel planning based on your budget, time, and interests
+        </p>
+      </header>
+
+      <section class="tip-card__body">
+        <form id="planner-form" class="planner-form" autocomplete="off">
+          <div class="field-group">
+            <label for="city">City</label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              placeholder="e.g., Jaipur, Udaipur"
+              required
+            />
+          </div>
+
+          <div class="field-group">
+            <label for="interest">Interest</label>
+            <select id="interest" name="interest" required>
+              <option value="" disabled selected>Select an interest</option>
+              <option value="History">History</option>
+              <option value="Culture">Culture</option>
+              <option value="Nature">Nature</option>
+              <option value="Adventure">Adventure</option>
+              <option value="Spiritual">Spiritual</option>
+              <option value="Wildlife">Wildlife</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="budget">Budget (INR)</label>
+            <input
+              type="number"
+              id="budget"
+              name="budget"
+              min="0"
+              step="500"
+              placeholder="e.g., 5000"
+              required
+            />
+          </div>
+
+          <div class="field-group">
+            <label for="travel-time">Travel Time</label>
+            <select id="travel-time" name="travelTime" required>
+              <option value="" disabled selected>Select duration</option>
+              <option value="1 Day">1 Day</option>
+              <option value="2–3 Days">2–3 Days</option>
+              <option value="4–7 Days">4–7 Days</option>
+            </select>
+          </div>
+
+          <div class="field-group field-group--full">
+            <button type="submit" class="primary-btn">
+              Get Smart Recommendations
+            </button>
+          </div>
+        </form>
+
+        <section class="results-section">
+          <div class="results-header">
+            <h2>AI Travel Insight</h2>
+            <p id="ai-insight" class="ai-text">
+              Enter your details above to generate intelligent, Rajasthan-focused travel suggestions.
+            </p>
+          </div>
+
+          <div class="meta-row">
+            <p id="weather-info" class="meta-text">
+              Current Weather: Sunny, 28°C
+            </p>
+            <p id="trip-summary" class="meta-text meta-text--muted"></p>
+          </div>
+
+          <div id="recommendations" class="recommendations">
+            <!-- Recommendation cards rendered here -->
+          </div>
+        </section>
+      </section>
+
+      <footer class="tip-card__footer">
+        <small>
+          Demo-only, AI-inspired recommendations for Rajasthan tourism. No live data or real-time pricing.
+        </small>
+      </footer>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
