@@ -10,7 +10,7 @@
   <div class="app-shell">
     <main class="tip-card">
       <header class="tip-card__header">
-        <h1 class="tip-title">Tourism Intelligence Platform</h1>
+        <h1 class="tip-title">YatraSetu</h1>
         <p class="tip-subtitle">
           Smart travel planning based on your budget, time, and interests
         </p>
@@ -56,13 +56,22 @@
           </div>
 
           <div class="field-group">
-            <label for="travel-time">Travel Time</label>
-            <select id="travel-time" name="travelTime" required>
+            <label for="trip-duration">How much time do you have?</label>
+            <select id="trip-duration" name="tripDuration" required>
               <option value="" disabled selected>Select duration</option>
-              <option value="1 Day">1 Day</option>
+              <option value="2 Hours">2 Hours</option>
+              <option value="Half Day">Half Day</option>
+              <option value="Full Day">Full Day</option>
               <option value="2–3 Days">2–3 Days</option>
-              <option value="4–7 Days">4–7 Days</option>
             </select>
+          </div>
+
+          <div class="field-group field-group--full">
+            <label class="toggle-label">
+              <input type="checkbox" id="solo-mode" name="soloMode" />
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Solo Traveler Mode</span>
+            </label>
           </div>
 
           <div class="field-group field-group--full">
@@ -80,6 +89,14 @@
             </p>
           </div>
 
+          <!-- Seasonal Travel Insight -->
+          <div id="seasonal-insight" class="seasonal-insight" style="display: none;">
+            <h3 class="seasonal-title">🌤 Seasonal Travel Insight</h3>
+            <div id="seasonal-content" class="seasonal-content">
+              <!-- Seasonal info rendered here -->
+            </div>
+          </div>
+
           <div class="meta-row">
             <p id="weather-info" class="meta-text">
               Current Weather: Sunny, 28°C
@@ -89,6 +106,64 @@
 
           <div id="recommendations" class="recommendations">
             <!-- Recommendation cards rendered here -->
+          </div>
+        </section>
+
+        <!-- Local Experiences Section -->
+        <section id="local-experiences-section" class="local-experiences-section" style="display: none;">
+          <h3 class="section-title">🎭 Local Experiences Near You</h3>
+          <div id="local-experiences-container" class="local-experiences-container">
+            <!-- Local experience cards rendered here -->
+          </div>
+        </section>
+
+        <!-- Safety & Emergency Panel -->
+        <section id="safety-panel" class="safety-panel" style="display: none;">
+          <h3 class="section-title">Safety & Emergency</h3>
+          <div class="emergency-contacts">
+            <div class="emergency-item">
+              <span class="emergency-label">Police</span>
+              <a href="tel:100" class="emergency-number">100</a>
+            </div>
+            <div class="emergency-item">
+              <span class="emergency-label">Ambulance</span>
+              <a href="tel:102" class="emergency-number">102</a>
+            </div>
+            <div class="emergency-item">
+              <span class="emergency-label">Women's Helpline</span>
+              <a href="tel:1091" class="emergency-number">1091</a>
+            </div>
+          </div>
+          <div class="location-sharing">
+            <button id="share-location-btn" class="secondary-btn">Share My Live Location</button>
+            <div id="location-display" class="location-display" style="display: none;">
+              <p id="coordinates-text" class="coordinates-text"></p>
+              <a id="maps-link" href="#" target="_blank" class="maps-link-btn">Open in Google Maps</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- City Map View -->
+        <section id="city-map-section" class="city-map-section" style="display: none;">
+          <h3 class="section-title">City Map View</h3>
+          <div id="map-container" class="map-container">
+            <iframe id="city-map" class="city-map" frameborder="0" allowfullscreen></iframe>
+          </div>
+        </section>
+
+        <!-- Local Guides Section -->
+        <section id="guides-section" class="guides-section" style="display: none;">
+          <h3 class="section-title">Local Guides Available</h3>
+          <div id="guides-container" class="guides-container">
+            <!-- Guide cards rendered here -->
+          </div>
+        </section>
+
+        <!-- Nearby Stays Section -->
+        <section id="stays-section" class="stays-section" style="display: none;">
+          <h3 class="section-title">Nearby Stay Options</h3>
+          <div id="stays-container" class="stays-container">
+            <!-- Stay cards rendered here -->
           </div>
         </section>
       </section>
