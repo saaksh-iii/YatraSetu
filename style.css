@@ -113,6 +113,54 @@ body {
     transform 120ms ease-out;
 }
 
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 3rem;
+  height: 1.5rem;
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+  transition: background 200ms ease;
+}
+
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  background: white;
+  border-radius: 50%;
+  transition: transform 200ms ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-switch {
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-switch::after {
+  transform: translateX(1.5rem);
+}
+
+.toggle-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+}
+
 .field-group input::placeholder {
   color: #94a3b8;
 }
@@ -358,6 +406,440 @@ body {
   gap: 0.25rem;
 }
 
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #020617;
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.safety-panel,
+.city-map-section,
+.guides-section,
+.stays-section {
+  padding: 1.25rem 1.35rem 1.4rem;
+  border-radius: 1.1rem;
+  background: radial-gradient(circle at top right, rgba(219, 234, 254, 0.98), rgba(248, 250, 252, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 16px 32px rgba(148, 163, 184, 0.45);
+  margin-top: 1.5rem;
+  animation: slide-in 400ms ease-out;
+}
+
+.safety-panel {
+  background: radial-gradient(circle at top left, rgba(254, 226, 226, 0.95), rgba(248, 250, 252, 0.98));
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+.emergency-contacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.emergency-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.emergency-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.emergency-number {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #dc2626;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.emergency-number:hover {
+  color: #b91c1c;
+}
+
+.location-sharing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.secondary-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1.2rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.secondary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 25px rgba(220, 38, 38, 0.5);
+}
+
+.location-display {
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.coordinates-text {
+  font-size: 0.85rem;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  font-family: monospace;
+}
+
+.maps-link-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 150ms ease;
+}
+
+.maps-link-btn:hover {
+  background: #1d4ed8;
+}
+
+.map-container {
+  width: 100%;
+  height: 300px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(148, 163, 184, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.city-map {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.guides-container,
+.stays-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.guide-card,
+.stay-card {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 0.9rem;
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  transition: transform 140ms ease-out, box-shadow 140ms ease-out;
+}
+
+.guide-card:hover,
+.stay-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(148, 163, 184, 0.7);
+}
+
+.guide-name,
+.stay-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #020617;
+  margin-bottom: 0.5rem;
+}
+
+.guide-specialty,
+.stay-type {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin-bottom: 0.4rem;
+}
+
+.guide-languages,
+.stay-price {
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+}
+
+.guide-price {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 0.75rem;
+}
+
+.stay-description {
+  font-size: 0.85rem;
+  color: #111827;
+  margin-top: 0.5rem;
+}
+
+.contact-guide-btn {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.6rem;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  transition: transform 150ms ease-out, opacity 150ms ease;
+}
+
+.contact-guide-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.view-map-btn {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.view-map-btn:hover {
+  background: rgba(37, 99, 235, 0.2);
+  color: #1d4ed8;
+}
+
+.time-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.budget-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #059669;
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.solo-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.crowded-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.trip-summary-box {
+  padding: 0.75rem 1rem;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  margin-top: 0.75rem;
+}
+
+.trip-summary-box p {
+  font-size: 0.85rem;
+  color: #1e40af;
+  margin: 0;
+}
+
+.seasonal-insight {
+  padding: 1rem 1.2rem;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(255, 251, 235, 0.98));
+  border-radius: 0.9rem;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  margin-bottom: 1rem;
+  animation: slide-in 400ms ease-out;
+}
+
+.seasonal-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.seasonal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seasonal-item {
+  font-size: 0.85rem;
+  color: #78350f;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.seasonal-note {
+  font-size: 0.85rem;
+  color: #92400e;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(234, 179, 8, 0.2);
+  font-style: italic;
+}
+
+.transport-info {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(239, 246, 255, 0.6);
+  border-radius: 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.transport-row {
+  font-size: 0.8rem;
+  color: #1e40af;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.transport-icon {
+  font-size: 1rem;
+}
+
+.local-experiences-section {
+  padding: 1.25rem 1.35rem 1.4rem;
+  border-radius: 1.1rem;
+  background: radial-gradient(circle at top right, rgba(219, 234, 254, 0.98), rgba(248, 250, 252, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 16px 32px rgba(148, 163, 184, 0.45);
+  margin-top: 1.5rem;
+  animation: slide-in 400ms ease-out;
+}
+
+.local-experiences-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.experience-card {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 0.9rem;
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  transition: transform 140ms ease-out, box-shadow 140ms ease-out;
+  position: relative;
+}
+
+.experience-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(148, 163, 184, 0.7);
+}
+
+.experience-name {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #020617;
+  margin-bottom: 0.4rem;
+}
+
+.experience-city {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.experience-description {
+  font-size: 0.85rem;
+  color: #111827;
+  margin-bottom: 0.6rem;
+  line-height: 1.5;
+}
+
+.experience-cost {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+
+.experience-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  font-weight: 600;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .tip-card__footer {
   font-size: 0.75rem;
   color: #6b7280;
@@ -424,6 +906,16 @@ body {
 
   .recommendations {
     max-height: 280px;
+  }
+
+  .guides-container,
+  .stays-container,
+  .local-experiences-container {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .map-container {
+    height: 250px;
   }
 }
 
