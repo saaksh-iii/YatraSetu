@@ -6,8 +6,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const tripDurationSelect = document.getElementById("trip-duration");
   const soloModeToggle = document.getElementById("solo-mode");
 
+  const resultsWrapper = document.getElementById("results-wrapper");
+  const initialState = document.getElementById("initial-state");
   const aiInsightEl = document.getElementById("ai-insight");
   const weatherInfoEl = document.getElementById("weather-info");
+  const budgetBadgeUI = document.getElementById("budget-badge-ui");
+  const soloIndicator = document.getElementById("solo-indicator");
   const tripSummaryEl = document.getElementById("trip-summary");
   const recommendationsEl = document.getElementById("recommendations");
   const safetyPanel = document.getElementById("safety-panel");
@@ -634,11 +638,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const weatherSamples = [
-    "Current Weather: Sunny, 28°C",
-    "Current Weather: Clear skies, 25°C",
-    "Current Weather: Warm and dry, 30°C",
-    "Current Weather: Pleasant breeze, 24°C",
-    "Current Weather: Mild haze, 27°C",
+    "Sunny, 28°C",
+    "Clear, 25°C",
+    "Warm, 30°C",
+    "Pleasant, 24°C",
+    "Mild, 27°C",
   ];
 
   function chooseRandomWeather() {
@@ -748,11 +752,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = document.createElement("article");
       card.className = "place-card";
 
-      const primary = document.createElement("div");
-      primary.className = "place-primary";
-
-      const nameRow = document.createElement("div");
-      nameRow.className = "place-name-row";
+      const header = document.createElement("div");
+      header.className = "place-card-header";
 
       const nameEl = document.createElement("h3");
       nameEl.className = "place-name";
@@ -762,115 +763,76 @@ document.addEventListener("DOMContentLoaded", () => {
       pillEl.className = "pill";
       pillEl.textContent = place.interest;
 
-      nameRow.appendChild(nameEl);
-      nameRow.appendChild(pillEl);
+      header.appendChild(nameEl);
+      header.appendChild(pillEl);
 
-      // Add time badge
-      if (place.timeOfDay) {
-        const timeBadge = document.createElement("span");
-        timeBadge.className = "time-badge";
-        timeBadge.textContent = place.timeOfDay;
-        nameRow.appendChild(timeBadge);
-      }
-
-      // Add budget category badge
       if (place.budgetCategory) {
         const budgetBadge = document.createElement("span");
-        budgetBadge.className = "budget-badge";
+        budgetBadge.className = "cost-badge";
         budgetBadge.textContent = place.budgetCategory;
-        nameRow.appendChild(budgetBadge);
+        header.appendChild(budgetBadge);
       }
 
-      // Add solo badges
       if (isSolo) {
         if (place.crowdLevel === "Low") {
           const soloBadge = document.createElement("span");
           soloBadge.className = "solo-badge";
-          soloBadge.textContent = "Safer for solo visit";
-          nameRow.appendChild(soloBadge);
+          soloBadge.textContent = "Solo-friendly";
+          header.appendChild(soloBadge);
         } else if (place.crowdLevel === "High") {
           const crowdedBadge = document.createElement("span");
           crowdedBadge.className = "crowded-badge";
-          crowdedBadge.textContent = "Popular but crowded";
-          nameRow.appendChild(crowdedBadge);
+          crowdedBadge.textContent = "Crowded";
+          header.appendChild(crowdedBadge);
         }
       }
 
-      const metaEl = document.createElement("p");
-      metaEl.className = "place-meta";
-      metaEl.textContent = `${place.city} • ${place.bestTimeToVisit}`;
+      const metaRow = document.createElement("div");
+      metaRow.className = "place-meta-row";
+      metaRow.innerHTML = `
+        <span class="cost-badge">₹${place.budget.toLocaleString("en-IN")}</span>
+        <span class="crowd-badge ${place.crowdLevel.toLowerCase()}">${place.crowdLevel}</span>
+        ${place.travelTime ? `<span>⏱ ${place.travelTime}</span>` : ""}
+      `;
 
       const descEl = document.createElement("p");
       descEl.className = "place-description";
       descEl.textContent = place.description;
 
-      primary.appendChild(nameRow);
-      primary.appendChild(metaEl);
-      primary.appendChild(descEl);
+      const extras = document.createElement("div");
+      extras.className = "place-extras";
+      const parts = [];
+      if (place.transport) parts.push(`How to reach: ${place.transport}`);
+      if (place.bestTimeToVisit) parts.push(`Best: ${place.bestTimeToVisit}`);
+      extras.textContent = parts.join(" • ");
 
-      // Add transport info
-      if (place.transport && place.travelTime) {
-        const transportInfo = document.createElement("div");
-        transportInfo.className = "transport-info";
-
-        const transportRow = document.createElement("p");
-        transportRow.className = "transport-row";
-        transportRow.innerHTML = `<span class="transport-icon">🚕</span> <strong>How to reach:</strong> ${place.transport}`;
-
-        const travelTimeRow = document.createElement("p");
-        travelTimeRow.className = "transport-row";
-        travelTimeRow.innerHTML = `<span class="transport-icon">🕒</span> <strong>Travel time:</strong> ${place.travelTime}`;
-
-        transportInfo.appendChild(transportRow);
-        transportInfo.appendChild(travelTimeRow);
-        primary.appendChild(transportInfo);
-      }
-
-      // Add View on Map button
       const mapBtn = document.createElement("a");
       mapBtn.href = `https://www.google.com/maps/search/${encodeURIComponent(place.name + " " + place.city)}`;
       mapBtn.target = "_blank";
-      mapBtn.className = "view-map-btn";
+      mapBtn.className = "maps-link-btn";
+      mapBtn.style.cssText = "font-size: 0.75rem; margin-top: 0.5rem; display: inline-block;";
       mapBtn.textContent = "View on Map";
-      primary.appendChild(mapBtn);
 
-      const secondary = document.createElement("div");
-      secondary.className = "place-secondary";
+      const mapWrapper = document.createElement("div");
+      mapWrapper.style.marginTop = "0.5rem";
+      mapWrapper.appendChild(mapBtn);
+      extras.appendChild(mapWrapper);
 
-      const statRow = document.createElement("div");
-      statRow.className = "stat-row";
+      const expandHint = document.createElement("p");
+      expandHint.className = "expand-hint";
+      expandHint.textContent = "Click to expand details";
 
-      const costLabel = document.createElement("span");
-      costLabel.className = "stat-label";
-      costLabel.textContent = "Estimated cost";
+      card.appendChild(header);
+      card.appendChild(metaRow);
+      card.appendChild(descEl);
+      card.appendChild(extras);
+      card.appendChild(expandHint);
 
-      const costValue = document.createElement("span");
-      costValue.textContent = `₹${place.budget.toLocaleString("en-IN")}`;
-
-      statRow.appendChild(costLabel);
-      statRow.appendChild(costValue);
-
-      const crowdRow = document.createElement("div");
-      crowdRow.className = "crowd-row";
-
-      const crowdBadge = document.createElement("span");
-      crowdBadge.className = `crowd-badge ${place.crowdLevel.toLowerCase()}`;
-      crowdBadge.textContent = `${place.crowdLevel} crowd`;
-
-      crowdRow.appendChild(crowdBadge);
-
-      if (place.crowdLevel === "High") {
-        const alert = document.createElement("span");
-        alert.className = "crowd-alert";
-        alert.textContent = "⚠ High crowd expected";
-        crowdRow.appendChild(alert);
-      }
-
-      secondary.appendChild(statRow);
-      secondary.appendChild(crowdRow);
-
-      card.appendChild(primary);
-      card.appendChild(secondary);
+      card.addEventListener("click", (e) => {
+        if (!e.target.closest("a")) {
+          card.classList.toggle("expanded");
+        }
+      });
 
       recommendationsEl.appendChild(card);
     });
@@ -1114,8 +1076,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Set up location sharing button
   shareLocationBtn.addEventListener("click", shareLocation);
+
+  function initTabs() {
+    const tabBtns = document.querySelectorAll(".tab-btn");
+    const panels = document.querySelectorAll(".tab-panel");
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tabId = btn.dataset.tab;
+
+        tabBtns.forEach((b) => b.classList.remove("active"));
+        panels.forEach((p) => p.classList.remove("active"));
+
+        btn.classList.add("active");
+        const panel = document.getElementById(`panel-${tabId}`);
+        if (panel) panel.classList.add("active");
+      });
+    });
+  }
+  initTabs();
+
+  function showResults() {
+    resultsWrapper.style.display = "block";
+    initialState.style.display = "none";
+  }
+
+  function hideResults() {
+    resultsWrapper.style.display = "none";
+    initialState.style.display = "block";
+  }
+
+  function updateEmptyHints(hasSeasonal, hasExperiences, hasGuides, hasStays, hasMap) {
+    document.getElementById("seasonal-empty").style.display = hasSeasonal ? "none" : "block";
+    document.getElementById("experiences-empty").style.display = hasExperiences ? "none" : "block";
+    document.getElementById("guides-empty").style.display = hasGuides ? "none" : "block";
+    document.getElementById("stays-empty").style.display = hasStays ? "none" : "block";
+    document.getElementById("map-empty").style.display = hasMap ? "none" : "block";
+  }
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -1128,18 +1126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const isSolo = soloModeToggle.checked;
 
     if (!interest || !tripDuration || !budget || budget <= 0) {
-      aiInsightEl.textContent =
-        "Please fill in all fields with a valid budget to generate recommendations.";
-      tripSummaryEl.textContent = "";
-      renderEmptyState(
-        "Waiting for valid input. Set your city, interest, budget, and trip duration to explore Rajasthan intelligently."
-      );
-      safetyPanel.style.display = "none";
-      document.getElementById("seasonal-insight").style.display = "none";
-      cityMapSection.style.display = "none";
-      guidesSection.style.display = "none";
-      staysSection.style.display = "none";
-      document.getElementById("local-experiences-section").style.display = "none";
+      hideResults();
       return;
     }
 
@@ -1168,19 +1155,20 @@ document.addEventListener("DOMContentLoaded", () => {
     weatherInfoEl.textContent = chooseRandomWeather();
 
     if (matches.length === 0) {
-      aiInsightEl.textContent =
-        "No places found. Try increasing your budget or changing interest.";
-      tripSummaryEl.textContent =
-        "The current combination of city, budget, and interest is too restrictive for our Rajasthan dataset.";
-      renderEmptyState(
-        "No places match the current filters. Try increasing your budget or exploring a different interest type."
-      );
-      safetyPanel.style.display = isSolo ? "block" : "none";
+      showResults();
+      weatherInfoEl.textContent = chooseRandomWeather();
+      budgetBadgeUI.textContent = `Budget: ₹${budget.toLocaleString("en-IN")}`;
+      budgetBadgeUI.style.display = "inline-flex";
+      soloIndicator.style.display = isSolo ? "inline-flex" : "none";
+      aiInsightEl.textContent = "No places found. Try increasing your budget or changing interest.";
+      tripSummaryEl.innerHTML = "<p>The current combination of city, budget, and interest is too restrictive.</p>";
+      renderEmptyState("No places match. Try increasing budget or changing interest.");
       document.getElementById("seasonal-insight").style.display = "none";
       cityMapSection.style.display = "none";
       guidesSection.style.display = "none";
       staysSection.style.display = "none";
       document.getElementById("local-experiences-section").style.display = "none";
+      updateEmptyHints(false, false, false, false, false);
       return;
     }
 
@@ -1188,6 +1176,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const capitalizedCity = inferredCity
       ? inferredCity.charAt(0).toUpperCase() + inferredCity.slice(1)
       : matches[0].city;
+
+    showResults();
+    weatherInfoEl.textContent = chooseRandomWeather();
+    budgetBadgeUI.textContent = `Budget: ₹${budget.toLocaleString("en-IN")}`;
+    budgetBadgeUI.style.display = "inline-flex";
+    soloIndicator.style.display = isSolo ? "inline-flex" : "none";
 
     aiInsightEl.textContent = buildAIInsight({
       city: inferredCity,
@@ -1200,25 +1194,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const summaryText = summarizeTravelTime(tripDuration);
     const packedLevel =
-      tripDuration === "2 Hours"
-        ? "Very packed"
-        : tripDuration === "Half Day"
-        ? "Moderately packed"
-        : tripDuration === "Full Day"
-        ? "Well-paced"
-        : "Relaxed";
+      tripDuration === "2 Hours" ? "Very packed"
+      : tripDuration === "Half Day" ? "Moderately packed"
+      : tripDuration === "Full Day" ? "Well-paced"
+      : "Relaxed";
 
-    tripSummaryEl.innerHTML = `<div class="trip-summary-box"><p><strong>Trip Summary:</strong> ${summaryText} Schedule intensity: ${packedLevel}.</p></div>`;
+    tripSummaryEl.innerHTML = `<p><strong>Trip Summary:</strong> ${summaryText} Schedule: ${packedLevel}.</p>`;
 
     renderRecommendations(matches, isSolo);
-
-    // Show additional sections
-    safetyPanel.style.display = isSolo ? "block" : "block"; // Always show safety panel
     renderSeasonalInsight(capitalizedCity);
     renderCityMap(capitalizedCity);
     renderGuides(capitalizedCity);
     renderStays(capitalizedCity);
     renderLocalExperiences(capitalizedCity);
+
+    const resolveCity = (obj) => {
+      if (obj[capitalizedCity]) return true;
+      const key = Object.keys(obj).find((k) => k.toLowerCase() === capitalizedCity.toLowerCase());
+      return !!key && !!obj[key];
+    };
+    const getCityData = (obj) => {
+      const key = obj[capitalizedCity] ? capitalizedCity : Object.keys(obj).find((k) => k.toLowerCase() === capitalizedCity.toLowerCase());
+      return key ? obj[key] : null;
+    };
+    const hasSeasonal = !!getCityData(citySeasonData);
+    const hasExperiences = ((getCityData(localExperiences)) || []).length > 0;
+    const hasGuides = (getCityData(guides) || []).length > 0;
+    const hasStays = (getCityData(stays) || []).length > 0;
+    const hasMap = !!getCityData(cityCoordinates);
+    updateEmptyHints(hasSeasonal, hasExperiences, hasGuides, hasStays, hasMap);
   });
 });
 
