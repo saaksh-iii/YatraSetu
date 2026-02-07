@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tourism Intelligence Platform</title>
+  <title>YatraSetu — Tourism Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,167 +14,141 @@
     <main class="tip-card">
       <header class="tip-card__header">
         <h1 class="tip-title">YatraSetu</h1>
-        <p class="tip-subtitle">
-          Smart travel planning based on your budget, time, and interests
-        </p>
+        <p class="tip-subtitle">Smart travel planning for budget, time & interests</p>
       </header>
 
       <section class="tip-card__body">
         <form id="planner-form" class="planner-form" autocomplete="off">
-          <div class="field-group">
-            <label for="city">City</label>
-            <input
-              type="text"
-              id="city"
-              name="city"
-              placeholder="e.g., Jaipur, Udaipur"
-              required
-            />
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="city">City</label>
+              <input type="text" id="city" name="city" placeholder="e.g., Jaipur, Udaipur" required />
+            </div>
+            <div class="field-group">
+              <label for="interest">Interest</label>
+              <select id="interest" name="interest" required>
+                <option value="" disabled selected>Select interest</option>
+                <option value="History">History</option>
+                <option value="Culture">Culture</option>
+                <option value="Nature">Nature</option>
+                <option value="Adventure">Adventure</option>
+                <option value="Spiritual">Spiritual</option>
+                <option value="Wildlife">Wildlife</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="budget">Budget (₹)</label>
+              <input type="number" id="budget" name="budget" min="0" step="500" placeholder="e.g., 5000" required />
+            </div>
+            <div class="field-group">
+              <label for="trip-duration">Time</label>
+              <select id="trip-duration" name="tripDuration" required>
+                <option value="" disabled selected>Duration</option>
+                <option value="2 Hours">2 Hours</option>
+                <option value="Half Day">Half Day</option>
+                <option value="Full Day">Full Day</option>
+                <option value="2–3 Days">2–3 Days</option>
+              </select>
+            </div>
           </div>
-
-          <div class="field-group">
-            <label for="interest">Interest</label>
-            <select id="interest" name="interest" required>
-              <option value="" disabled selected>Select an interest</option>
-              <option value="History">History</option>
-              <option value="Culture">Culture</option>
-              <option value="Nature">Nature</option>
-              <option value="Adventure">Adventure</option>
-              <option value="Spiritual">Spiritual</option>
-              <option value="Wildlife">Wildlife</option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <label for="budget">Budget (INR)</label>
-            <input
-              type="number"
-              id="budget"
-              name="budget"
-              min="0"
-              step="500"
-              placeholder="e.g., 5000"
-              required
-            />
-          </div>
-
-          <div class="field-group">
-            <label for="trip-duration">How much time do you have?</label>
-            <select id="trip-duration" name="tripDuration" required>
-              <option value="" disabled selected>Select duration</option>
-              <option value="2 Hours">2 Hours</option>
-              <option value="Half Day">Half Day</option>
-              <option value="Full Day">Full Day</option>
-              <option value="2–3 Days">2–3 Days</option>
-            </select>
-          </div>
-
-          <div class="field-group field-group--full">
-            <label class="toggle-label">
+          <div class="form-footer">
+            <label class="toggle-label solo-highlight">
               <input type="checkbox" id="solo-mode" name="soloMode" />
               <span class="toggle-switch"></span>
               <span class="toggle-text">Solo Traveler Mode</span>
+              <span class="solo-badge-ui" aria-hidden="true">Prioritizes low-crowd spots</span>
             </label>
-          </div>
-
-          <div class="field-group field-group--full">
-            <button type="submit" class="primary-btn">
-              Get Smart Recommendations
-            </button>
+            <button type="submit" class="primary-btn">Get Recommendations</button>
           </div>
         </form>
 
-        <section class="results-section">
-          <div class="results-header">
-            <h2>AI Travel Insight</h2>
-            <p id="ai-insight" class="ai-text">
-              Enter your details above to generate intelligent, Rajasthan-focused travel suggestions.
-            </p>
+        <div id="results-wrapper" class="results-wrapper" style="display: none;">
+          <div class="meta-bar">
+            <span id="weather-info" class="meta-pill">Sunny, 28°C</span>
+            <span id="budget-badge-ui" class="meta-pill meta-pill--budget"></span>
+            <span id="solo-indicator" class="meta-pill meta-pill--solo" style="display: none;">Solo Mode Active</span>
+          </div>
+          <p id="ai-insight" class="ai-text"></p>
+          <div id="trip-summary" class="trip-summary-box"></div>
+
+          <!-- Accordion Tabs -->
+          <div class="section-tabs" role="tablist">
+            <button class="tab-btn active" data-tab="places" role="tab">Places</button>
+            <button class="tab-btn" data-tab="seasonal" role="tab">Seasonal</button>
+            <button class="tab-btn" data-tab="experiences" role="tab">Experiences</button>
+            <button class="tab-btn" data-tab="guides" role="tab">Guides</button>
+            <button class="tab-btn" data-tab="stays" role="tab">Stays</button>
+            <button class="tab-btn" data-tab="map" role="tab">Map</button>
+            <button class="tab-btn" data-tab="safety" role="tab">Safety</button>
           </div>
 
-          <!-- Seasonal Travel Insight -->
-          <div id="seasonal-insight" class="seasonal-insight" style="display: none;">
-            <h3 class="seasonal-title">🌤 Seasonal Travel Insight</h3>
-            <div id="seasonal-content" class="seasonal-content">
-              <!-- Seasonal info rendered here -->
+          <div class="tab-panels">
+            <div id="panel-places" class="tab-panel active" role="tabpanel">
+              <div id="recommendations" class="card-grid recommendations"></div>
+            </div>
+
+            <div id="panel-seasonal" class="tab-panel" role="tabpanel">
+              <div id="seasonal-insight" class="seasonal-insight" style="display: none;">
+                <h3 class="seasonal-title">Seasonal Travel Insight</h3>
+                <div id="seasonal-content" class="seasonal-content"></div>
+              </div>
+              <p id="seasonal-empty" class="empty-hint">Select a city and search to see seasonal insights.</p>
+            </div>
+
+            <div id="panel-experiences" class="tab-panel" role="tabpanel">
+              <div id="local-experiences-section" style="display: none;">
+                <div id="local-experiences-container" class="card-grid"></div>
+              </div>
+              <p id="experiences-empty" class="empty-hint">Select a city and search to see local experiences.</p>
+            </div>
+
+            <div id="panel-guides" class="tab-panel" role="tabpanel">
+              <div id="guides-section" style="display: none;">
+                <div id="guides-container" class="card-grid guides-grid"></div>
+              </div>
+              <p id="guides-empty" class="empty-hint">Select a city and search to see local guides.</p>
+            </div>
+
+            <div id="panel-stays" class="tab-panel" role="tabpanel">
+              <div id="stays-section" style="display: none;">
+                <div id="stays-container" class="card-grid stays-grid"></div>
+              </div>
+              <p id="stays-empty" class="empty-hint">Select a city and search to see stay options.</p>
+            </div>
+
+            <div id="panel-map" class="tab-panel" role="tabpanel">
+              <div id="city-map-section" style="display: none;">
+                <div id="map-container" class="map-container">
+                  <iframe id="city-map" class="city-map" frameborder="0" allowfullscreen title="City map"></iframe>
+                </div>
+              </div>
+              <p id="map-empty" class="empty-hint">Select a city and search to see the map.</p>
+            </div>
+
+            <div id="panel-safety" class="tab-panel" role="tabpanel">
+              <section id="safety-panel" class="safety-panel">
+                <div class="emergency-contacts">
+                  <a href="tel:100" class="emergency-item">Police 100</a>
+                  <a href="tel:102" class="emergency-item">Ambulance 102</a>
+                  <a href="tel:1091" class="emergency-item">Women's Helpline 1091</a>
+                </div>
+                <button id="share-location-btn" class="secondary-btn">Share My Live Location</button>
+                <div id="location-display" class="location-display" style="display: none;">
+                  <p id="coordinates-text" class="coordinates-text"></p>
+                  <a id="maps-link" href="#" target="_blank" class="maps-link-btn">Open in Google Maps</a>
+                </div>
+              </section>
             </div>
           </div>
+        </div>
 
-          <div class="meta-row">
-            <p id="weather-info" class="meta-text">
-              Current Weather: Sunny, 28°C
-            </p>
-            <p id="trip-summary" class="meta-text meta-text--muted"></p>
-          </div>
-
-          <div id="recommendations" class="recommendations">
-            <!-- Recommendation cards rendered here -->
-          </div>
-        </section>
-
-        <!-- Local Experiences Section -->
-        <section id="local-experiences-section" class="local-experiences-section" style="display: none;">
-          <h3 class="section-title">🎭 Local Experiences Near You</h3>
-          <div id="local-experiences-container" class="local-experiences-container">
-            <!-- Local experience cards rendered here -->
-          </div>
-        </section>
-
-        <!-- Safety & Emergency Panel -->
-        <section id="safety-panel" class="safety-panel" style="display: none;">
-          <h3 class="section-title">Safety & Emergency</h3>
-          <div class="emergency-contacts">
-            <div class="emergency-item">
-              <span class="emergency-label">Police</span>
-              <a href="tel:100" class="emergency-number">100</a>
-            </div>
-            <div class="emergency-item">
-              <span class="emergency-label">Ambulance</span>
-              <a href="tel:102" class="emergency-number">102</a>
-            </div>
-            <div class="emergency-item">
-              <span class="emergency-label">Women's Helpline</span>
-              <a href="tel:1091" class="emergency-number">1091</a>
-            </div>
-          </div>
-          <div class="location-sharing">
-            <button id="share-location-btn" class="secondary-btn">Share My Live Location</button>
-            <div id="location-display" class="location-display" style="display: none;">
-              <p id="coordinates-text" class="coordinates-text"></p>
-              <a id="maps-link" href="#" target="_blank" class="maps-link-btn">Open in Google Maps</a>
-            </div>
-          </div>
-        </section>
-
-        <!-- City Map View -->
-        <section id="city-map-section" class="city-map-section" style="display: none;">
-          <h3 class="section-title">City Map View</h3>
-          <div id="map-container" class="map-container">
-            <iframe id="city-map" class="city-map" frameborder="0" allowfullscreen></iframe>
-          </div>
-        </section>
-
-        <!-- Local Guides Section -->
-        <section id="guides-section" class="guides-section" style="display: none;">
-          <h3 class="section-title">Local Guides Available</h3>
-          <div id="guides-container" class="guides-container">
-            <!-- Guide cards rendered here -->
-          </div>
-        </section>
-
-        <!-- Nearby Stays Section -->
-        <section id="stays-section" class="stays-section" style="display: none;">
-          <h3 class="section-title">Nearby Stay Options</h3>
-          <div id="stays-container" class="stays-container">
-            <!-- Stay cards rendered here -->
-          </div>
-        </section>
+        <div id="initial-state" class="initial-state">
+          <p>Enter your details above to generate intelligent, Rajasthan-focused travel suggestions.</p>
+        </div>
       </section>
 
       <footer class="tip-card__footer">
-        <small>
-          Demo-only, AI-inspired recommendations for Rajasthan tourism. No live data or real-time pricing.
-        </small>
+        <small>Demo-only, AI-inspired recommendations. No live data or real-time pricing.</small>
       </footer>
     </main>
   </div>
