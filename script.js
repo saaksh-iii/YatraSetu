@@ -626,7 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ],
   };
 
-  // City coordinates for map embedding
+  // City coordinates for map embedding & weather API
   const cityCoordinates = {
     Jaipur: { lat: 26.9124, lng: 75.7873 },
     Udaipur: { lat: 24.5854, lng: 73.7125 },
@@ -637,17 +637,158 @@ document.addEventListener("DOMContentLoaded", () => {
     Ranthambore: { lat: 26.0172, lng: 76.5025 },
   };
 
-  const weatherSamples = [
-    "Sunny, 28°C",
-    "Clear, 25°C",
-    "Warm, 30°C",
-    "Pleasant, 24°C",
-    "Mild, 27°C",
-  ];
+  const weatherSamples = ["Sunny, 28°C", "Clear, 25°C", "Warm, 30°C", "Pleasant, 24°C", "Mild, 27°C"];
+  function getFallbackWeather() {
+    return { temp: 28, condition: "clear", display: weatherSamples[Math.floor(Math.random() * weatherSamples.length)] };
+  }
+
+  // ------ FOOTFALL PREDICTION ENGINE (rule-based core, API-enhanced) ------
+
+  /**
+   * Fetch weather from Open-Meteo API (free, no key). Falls back to rule-based on failure.
+   */
+  async function fetchWeather(cityName) {
+    const normalized = (cityName || "").toLowerCase();
+    const coords = cityCoordinates[cityName]
+      || Object.entries(cityCoordinates).find(([k]) => k.toLowerCase() === normalized)?.[1]
+      || Object.entries(cityCoordinates).find(([k]) => k.toLowerCase().startsWith(normalized) || normalized.startsWith(k.toLowerCase()))?.[1];
+    if (!coords) return getFallbackWeather();
+
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&current=temperature_2m,weather_code`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) return getFallbackWeather();
+      const data = await res.json();
+      const temp = data.current?.temperature_2m ?? 28;
+      const code = data.current?.weather_code ?? 0;
+      const condition = code <= 3 ? "clear" : code >= 51 && code <= 67 ? "rain" : code >= 80 ? "rain" : code >= 95 ? "storm" : "cloudy";
+      const display = `${temp}°C, ${condition === "rain" ? "Rain" : condition === "storm" ? "Storm" : condition === "cloudy" ? "Cloudy" : "Clear"}`;
+      return { temp, condition, display };
+    } catch {
+      return getFallbackWeather();
+    }
+  }
+
+  /**
+   * Adjust base footfall score using weather. Extreme heat/rain reduce activity.
+   */
+  function adjustUsingWeather(weather, baseScore, isOutdoor = true) {
+    let score = baseScore;
+    const { temp, condition } = weather;
+
+    if (condition === "rain" || condition === "storm") {
+      score *= isOutdoor ? 0.5 : 0.85;
+    } else if (temp >= 40) {
+      score *= 0.55;
+    } else if (temp >= 36) {
+      score *= 0.75;
+    } else if (temp >= 32) {
+      score *= 0.9;
+    } else if (temp >= 22 && temp <= 28 && condition === "clear") {
+      score *= 1.15;
+    } else if (temp >= 18 && temp <= 26) {
+      score *= 1.08;
+    }
+    return Math.round(Math.min(100, Math.max(0, score)));
+  }
+
+  /**
+   * Get time-of-day and weekday/weekend factors.
+   */
+  function getTimeAndDayFactors() {
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay();
+    const isWeekend = day === 0 || day === 6;
+
+    let timeFactor = 1;
+    if (hour >= 9 && hour <= 11) timeFactor = 1.1;
+    else if (hour >= 17 && hour <= 20) timeFactor = 1.25;
+    else if (hour >= 20 && hour <= 22) timeFactor = 1.15;
+    else if (hour >= 12 && hour <= 14) timeFactor = 0.9;
+    else if (hour < 8 || hour > 22) timeFactor = 0.6;
+
+    const dayFactor = isWeekend ? 1.25 : 1;
+    return { timeFactor, dayFactor, isWeekend, hour };
+  }
+
+  /**
+   * Festival/season factor for Rajasthan. Simulates crowd surge during peak seasons.
+   */
+  const festivalMonths = {
+    10: { factor: 1.1, label: "Diwali / early winter" },
+    11: { factor: 1.35, label: "Pushkar Fair & peak tourist season" },
+    12: { factor: 1.25, label: "Winter holiday rush" },
+    1: { factor: 1.2, label: "New Year & Republic Day" },
+    2: { factor: 1.15, label: "Late winter peak" },
+    3: { factor: 1.05, label: "Spring travel" },
+    4: { factor: 0.85, label: "Pre-summer taper" },
+    5: { factor: 0.6, label: "Summer heat reduces tourism" },
+    6: { factor: 0.55, label: "Extreme summer" },
+    7: { factor: 0.65, label: "Monsoon" },
+    8: { factor: 0.7, label: "Late monsoon" },
+    9: { factor: 0.9, label: "Post-monsoon recovery" },
+  };
+
+  function getSeasonFestivalFactor() {
+    const month = new Date().getMonth() + 1;
+    const info = festivalMonths[month] || { factor: 1, label: "Normal season" };
+    return { factor: info.factor, label: info.label };
+  }
+
+  /**
+   * Map base crowd level to initial score.
+   */
+  const baseCrowdToScore = { Low: 25, Medium: 50, High: 75 };
+
+  /**
+   * Convert score to crowd level and optional label.
+   */
+  function scoreToCrowdLevel(score) {
+    if (score <= 33) return { level: "Low", score };
+    if (score <= 66) return { level: "Medium", score };
+    return { level: "High", score };
+  }
+
+  /**
+   * Predict footfall combining: time, day, weather, season/festival.
+   */
+  function predictFootfall(place, weather, timeDay, seasonFactor, isOutdoor = true) {
+    const baseScore = baseCrowdToScore[place.crowdLevel] ?? 50;
+    let score = baseScore * timeDay.timeFactor * timeDay.dayFactor * seasonFactor.factor;
+    score = adjustUsingWeather(weather, score, isOutdoor);
+    return { ...scoreToCrowdLevel(score), seasonLabel: seasonFactor.label };
+  }
+
+  /**
+   * Generate smart insights for a place based on prediction.
+   */
+  function generateSmartInsights(place, prediction, weather, timeDay, seasonFactor) {
+    const parts = [];
+
+    if (prediction.level === "High") {
+      parts.push("Peak hours – expect congestion.");
+    }
+
+    const reasons = [];
+    if (timeDay.isWeekend) reasons.push("weekend");
+    else reasons.push("weekday");
+    const period = timeDay.hour < 12 ? "morning" : timeDay.hour < 17 ? "afternoon" : "evening";
+    reasons.push(period);
+
+    if (weather.condition === "rain") reasons.push("rain reducing outdoor visits");
+    else if (weather.temp >= 36) reasons.push("high temperature dampening activity");
+    else if (weather.temp >= 22 && weather.temp <= 28) reasons.push("pleasant weather");
+    reasons.push(seasonFactor.label.toLowerCase());
+
+    const explanation = `${prediction.level} footfall predicted due to ${reasons.join(", ")}.`;
+    parts.push(explanation);
+
+    return { warning: prediction.level === "High" ? "Peak hours – expect congestion." : null, explanation, bestTime: place.bestTimeToVisit };
+  }
 
   function chooseRandomWeather() {
-    const idx = Math.floor(Math.random() * weatherSamples.length);
-    return weatherSamples[idx];
+    return weatherSamples[Math.floor(Math.random() * weatherSamples.length)];
   }
 
   function summarizeTravelTime(tripDuration) {
@@ -680,7 +821,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function buildAIInsight({ city, interest, budget, tripDuration, matches, isSolo }) {
+  /**
+   * Generate weather-based footfall insight for the summary.
+   */
+  function getWeatherFootfallInsight(weather, seasonFactor) {
+    if (weather.temp >= 38) return "Footfall may decrease due to high temperature.";
+    if (weather.temp >= 36) return "Hot conditions may reduce daytime outdoor activity.";
+    if (weather.condition === "rain" || weather.condition === "storm") return "Footfall likely lower due to rain affecting outdoor visits.";
+    if (weather.temp >= 22 && weather.temp <= 28 && weather.condition === "clear") return "Pleasant weather expected to boost tourist activity.";
+    if (seasonFactor.factor >= 1.2) return `Seasonal surge: ${seasonFactor.label} — expect higher crowds.`;
+    return null;
+  }
+
+  function buildAIInsight({ city, interest, budget, tripDuration, matches, isSolo, weatherInsight }) {
     const capitalizedCity = city
       ? city.charAt(0).toUpperCase() + city.slice(1)
       : "Rajasthan";
@@ -724,7 +877,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ? " Solo Traveler Mode is active - low-crowd options are prioritized."
       : "";
 
-    return `${base} ${crowdSentence} ${durationSentence} ${costBand}${soloNote}`;
+    const weatherNote = weatherInsight ? ` ${weatherInsight}` : "";
+    return `${base} ${crowdSentence} ${durationSentence} ${costBand}${soloNote}${weatherNote}`;
   }
 
   function getBudgetCategory(budget) {
@@ -745,10 +899,17 @@ document.addEventListener("DOMContentLoaded", () => {
     recommendationsEl.appendChild(p);
   }
 
-  function renderRecommendations(matches, isSolo = false) {
+  function renderRecommendations(matches, isSolo = false, predictionContext = null) {
     clearRecommendations();
+    const timeDay = predictionContext?.timeDay ?? getTimeAndDayFactors();
+    const seasonFactor = predictionContext?.seasonFactor ?? getSeasonFestivalFactor();
+    const weather = predictionContext?.weather ?? getFallbackWeather();
 
     matches.forEach((place) => {
+      const isOutdoor = !["Wildlife"].includes(place.interest);
+      const prediction = predictFootfall(place, weather, timeDay, seasonFactor, isOutdoor);
+      const insights = generateSmartInsights(place, prediction, weather, timeDay, seasonFactor);
+
       const card = document.createElement("article");
       card.className = "place-card";
 
@@ -774,12 +935,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (isSolo) {
-        if (place.crowdLevel === "Low") {
+        if (prediction.level === "Low") {
           const soloBadge = document.createElement("span");
           soloBadge.className = "solo-badge";
           soloBadge.textContent = "Solo-friendly";
           header.appendChild(soloBadge);
-        } else if (place.crowdLevel === "High") {
+        } else if (prediction.level === "High") {
           const crowdedBadge = document.createElement("span");
           crowdedBadge.className = "crowded-badge";
           crowdedBadge.textContent = "Crowded";
@@ -791,9 +952,21 @@ document.addEventListener("DOMContentLoaded", () => {
       metaRow.className = "place-meta-row";
       metaRow.innerHTML = `
         <span class="cost-badge">₹${place.budget.toLocaleString("en-IN")}</span>
-        <span class="crowd-badge ${place.crowdLevel.toLowerCase()}">${place.crowdLevel}</span>
+        <span class="crowd-badge ${prediction.level.toLowerCase()}">${prediction.level} (${prediction.score})</span>
         ${place.travelTime ? `<span>⏱ ${place.travelTime}</span>` : ""}
       `;
+
+      const footfallInsight = document.createElement("p");
+      footfallInsight.className = "footfall-explanation";
+      footfallInsight.textContent = insights.explanation;
+
+      const bestTimeRow = document.createElement("div");
+      bestTimeRow.className = "best-time-row";
+      bestTimeRow.innerHTML = `<strong>Best time:</strong> ${insights.bestTime || place.bestTimeToVisit || "—"}`;
+
+      const warningBadge = insights.warning
+        ? `<span class="warning-badge">⚠ ${insights.warning}</span>`
+        : "";
 
       const descEl = document.createElement("p");
       descEl.className = "place-description";
@@ -823,7 +996,15 @@ document.addEventListener("DOMContentLoaded", () => {
       expandHint.textContent = "Click to expand details";
 
       card.appendChild(header);
+      if (insights.warning) {
+        const warnEl = document.createElement("span");
+        warnEl.className = "warning-badge";
+        warnEl.textContent = `⚠ ${insights.warning}`;
+        card.appendChild(warnEl);
+      }
       card.appendChild(metaRow);
+      card.appendChild(footfallInsight);
+      card.appendChild(bestTimeRow);
       card.appendChild(descEl);
       card.appendChild(extras);
       card.appendChild(expandHint);
@@ -996,6 +1177,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const seasonFactor = getSeasonFestivalFactor();
+    const surgeNote = seasonFactor.factor >= 1.2
+      ? `<div class="seasonal-item seasonal-surge"><strong>Footfall surge:</strong> ${seasonFactor.label} — expect higher crowds.</div>`
+      : seasonFactor.factor <= 0.7
+      ? `<div class="seasonal-item seasonal-surge"><strong>Lower crowds:</strong> ${seasonFactor.label}.</div>`
+      : "";
+
     seasonalInsightEl.style.display = "block";
     seasonalContentEl.innerHTML = `
       <div class="seasonal-item">
@@ -1004,6 +1192,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="seasonal-item">
         <strong>Avoid:</strong> ${seasonData.avoidMonths}
       </div>
+      ${surgeNote}
       <div class="seasonal-note">
         ${seasonData.climateNote}
       </div>
@@ -1115,7 +1304,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("map-empty").style.display = hasMap ? "none" : "block";
   }
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const rawCity = cityInput.value.trim();
@@ -1130,17 +1319,28 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const capitalizedCity = rawCity
+      ? rawCity.charAt(0).toUpperCase() + rawCity.slice(1)
+      : "";
+
+    weatherInfoEl.textContent = "Fetching weather…";
+    const weather = await fetchWeather(capitalizedCity || "Jaipur");
+    weatherInfoEl.textContent = weather.display;
+
+    const timeDay = getTimeAndDayFactors();
+    const seasonFactor = getSeasonFestivalFactor();
+    const predictionContext = { weather, timeDay, seasonFactor };
+
     let matches = places.filter((place) => {
       const cityMatch =
         city === ""
           ? true
-          : place.city.toLowerCase().includes(city); // allows partial matches like 'jai'
+          : place.city.toLowerCase().includes(city);
       const interestMatch = place.interest === interest;
       const budgetMatch = budget >= place.budget;
       return cityMatch && interestMatch && budgetMatch;
     });
 
-    // Solo mode: prioritize low-crowd places
     if (isSolo) {
       matches.sort((a, b) => {
         const crowdOrder = { Low: 0, Medium: 1, High: 2 };
@@ -1148,15 +1348,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Apply trip duration limit
     const limit = getTripDurationLimit(tripDuration);
     matches = matches.slice(0, limit);
 
-    weatherInfoEl.textContent = chooseRandomWeather();
-
     if (matches.length === 0) {
       showResults();
-      weatherInfoEl.textContent = chooseRandomWeather();
+      weatherInfoEl.textContent = weather.display;
       budgetBadgeUI.textContent = `Budget: ₹${budget.toLocaleString("en-IN")}`;
       budgetBadgeUI.style.display = "inline-flex";
       soloIndicator.style.display = isSolo ? "inline-flex" : "none";
@@ -1173,12 +1370,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const inferredCity = rawCity || matches[0].city;
-    const capitalizedCity = inferredCity
-      ? inferredCity.charAt(0).toUpperCase() + inferredCity.slice(1)
-      : matches[0].city;
+    const resolvedCity = matches[0].city;
+
+    const weatherInsight = getWeatherFootfallInsight(weather, seasonFactor);
 
     showResults();
-    weatherInfoEl.textContent = chooseRandomWeather();
+    weatherInfoEl.textContent = weather.display;
     budgetBadgeUI.textContent = `Budget: ₹${budget.toLocaleString("en-IN")}`;
     budgetBadgeUI.style.display = "inline-flex";
     soloIndicator.style.display = isSolo ? "inline-flex" : "none";
@@ -1190,6 +1387,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tripDuration,
       matches,
       isSolo,
+      weatherInsight,
     });
 
     const summaryText = summarizeTravelTime(tripDuration);
@@ -1201,20 +1399,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tripSummaryEl.innerHTML = `<p><strong>Trip Summary:</strong> ${summaryText} Schedule: ${packedLevel}.</p>`;
 
-    renderRecommendations(matches, isSolo);
-    renderSeasonalInsight(capitalizedCity);
-    renderCityMap(capitalizedCity);
-    renderGuides(capitalizedCity);
-    renderStays(capitalizedCity);
-    renderLocalExperiences(capitalizedCity);
+    renderRecommendations(matches, isSolo, predictionContext);
+    renderSeasonalInsight(resolvedCity);
+    renderCityMap(resolvedCity);
+    renderGuides(resolvedCity);
+    renderStays(resolvedCity);
+    renderLocalExperiences(resolvedCity);
 
-    const resolveCity = (obj) => {
-      if (obj[capitalizedCity]) return true;
-      const key = Object.keys(obj).find((k) => k.toLowerCase() === capitalizedCity.toLowerCase());
-      return !!key && !!obj[key];
-    };
     const getCityData = (obj) => {
-      const key = obj[capitalizedCity] ? capitalizedCity : Object.keys(obj).find((k) => k.toLowerCase() === capitalizedCity.toLowerCase());
+      const key = obj[resolvedCity] ? resolvedCity : Object.keys(obj).find((k) => k.toLowerCase() === resolvedCity.toLowerCase());
       return key ? obj[key] : null;
     };
     const hasSeasonal = !!getCityData(citySeasonData);
